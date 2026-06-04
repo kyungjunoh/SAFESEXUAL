@@ -4,9 +4,9 @@
 
 ## 배포 링크
 
-🌐 [https://kyungjunoh.github.io/SAFESEXUAL](https://kyungjunoh.github.io/SAFESEXUAL)
+🌐 [https://kyungjunoh.github.io/SAFESEXUAL/index.html](https://kyungjunoh.github.io/SAFESEXUAL/index.html)
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-배포됨-58a6ff?style=flat&logo=github)](https://kyungjunoh.github.io/SAFESEXUAL)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-배포됨-58a6ff?style=flat&logo=github)](https://kyungjunoh.github.io/SAFESEXUAL/index.html)
 
 ## 구현 기능
 
