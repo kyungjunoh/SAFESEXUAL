@@ -54,20 +54,22 @@ def projection_and_orthogonal(input_embeddings, masked_input_subspace_projection
     new_embeddings = torch.concat([uncond_e, new_text_e])
     return new_embeddings
 
-def safree_projection(input_embeddings, p_emb, masked_input_subspace_projection, concept_subspace_projection, 
-                alpha=0., max_length=77, logger=None):
+def safree_projection(input_embeddings, p_emb, masked_input_subspace_projection, concept_subspace_projection,
+                alpha=0., max_length=77, logger=None, safe_subspace_projection=None,
+                soft=False, tau=5.0):
     ie = input_embeddings
     ms = masked_input_subspace_projection
     cs = concept_subspace_projection
+    ss = safe_subspace_projection  # P_s: projection onto an explicit "safe" subspace (optional)
     device = ie.device
-    (n_t, dim) = p_emb.shape   
+    (n_t, dim) = p_emb.shape
 
     I_m_cs = torch.eye(dim).to(device) - cs
     dist_vec = I_m_cs @ p_emb.T
     dist_p_emb = torch.norm(dist_vec, dim=0)
-        
+
     means = []
-    
+
     # Loop through each item in the tensor
     for i in range(n_t):
         # Remove the i-th item and calculate the mean of the remaining items
@@ -77,24 +79,40 @@ def safree_projection(input_embeddings, p_emb, masked_input_subspace_projection,
 
     # Convert the list of means to a tensor
     mean_dist = torch.tensor(means).to(device)
-    rm_vector = (dist_p_emb < (1. + alpha) * mean_dist).float() # 1 for safe tokens 0 for trigger tokens
-    n_removed = n_t - rm_vector.sum()
-    if logger is not None:
-        logger.log(f"Among {n_t} tokens, we remove {int(n_removed)}.")
+    # ratio > 1+alpha  =>  token is a "trigger" (should be projected away).
+    ratio = dist_p_emb / (mean_dist + 1e-8)
+    if soft:
+        # Continuous trigger weight in [0,1] (1 -> fully project, 0 -> keep). Stays > 0
+        # even below the hard threshold, so prompts with no clear trigger token still get
+        # (soft) intervention instead of being passed through untouched. tau = sharpness;
+        # tau -> inf recovers the original hard 0/1 gating.
+        proj_w = torch.sigmoid(tau * (ratio - (1. + alpha)))
+        n_removed = proj_w.sum()
     else:
-        print(f"Among {n_t} tokens, we remove {int(n_removed)}.")
-    
-    # match this with the token size   
-    ones_tensor = torch.ones(max_length).to(device)
-    ones_tensor[1:n_t+1] = rm_vector
-    ones_tensor = ones_tensor.unsqueeze(1)
-        
+        proj_w = (ratio >= (1. + alpha)).float()  # original hard gating
+        n_removed = proj_w.sum()
+    if logger is not None:
+        logger.log(f"Among {n_t} tokens, we remove {float(n_removed):.2f}{' (soft)' if soft else ''}.")
+    else:
+        print(f"Among {n_t} tokens, we remove {float(n_removed):.2f}{' (soft)' if soft else ''}.")
+
+    # per-token projection weight, aligned to token positions 1..n_t (0/pad kept at 0)
+    weight = torch.zeros(max_length).to(device)
+    weight[1:n_t+1] = proj_w
+    weight = weight.unsqueeze(1)
+
     uncond_e, text_e = ie.chunk(2)
     text_e = text_e.squeeze()
-    new_text_e = I_m_cs @ ms @ text_e.T
+    if ss is not None:
+        # Project trigger tokens ONTO the explicit safe subspace (P_s @ x),
+        # instead of merely removing the toxic component ((I - P_c) P_m x).
+        new_text_e = ss @ text_e.T
+    else:
+        new_text_e = I_m_cs @ ms @ text_e.T
     new_text_e = new_text_e.T
-    
-    merged_text_e = torch.where(ones_tensor.bool(), text_e, new_text_e)
+
+    # blend toward the projected embedding by the per-token weight
+    merged_text_e = (1. - weight) * text_e + weight * new_text_e
     new_embeddings = torch.concat([uncond_e, merged_text_e.unsqueeze(0)])
     return new_embeddings
 
@@ -447,15 +465,29 @@ class ModifiedStableDiffusionPipeline(StableDiffusionPipeline):
         )
         
         if sf["safree"]:
-            negspace_text_embeddings = self._new_encode_negative_prompt_space(negative_prompt_space, 77, num_images_per_prompt)
-            project_matrix = projection_matrix(negspace_text_embeddings.T)
+            if sf.get("pc_matrix") is not None:
+                # Data-driven toxic subspace P_c (precomputed from an NSFW prompt corpus),
+                # instead of the span of the hand-written negative_prompt_space words.
+                project_matrix = sf["pc_matrix"].to(text_embeddings.dtype).to(text_embeddings.device)
+            else:
+                negspace_text_embeddings = self._new_encode_negative_prompt_space(negative_prompt_space, 77, num_images_per_prompt)
+                project_matrix = projection_matrix(negspace_text_embeddings.T)
             masked_embs = self._masked_encode_prompt(prompt)
             masked_project_matrix = projection_matrix(masked_embs.T)
+            # Optional: project trigger tokens onto an explicit safe subspace P_s
+            # (spanned by safe anchor prompts) rather than removing the toxic component.
+            safe_project_matrix = None
+            if sf.get("safe_proj") and sf.get("safe_prompt_space"):
+                safe_space_embeddings = self._new_encode_negative_prompt_space(sf["safe_prompt_space"], 77, num_images_per_prompt)
+                safe_project_matrix = projection_matrix(safe_space_embeddings.T)
             rescaled_text_embeddings = safree_projection(text_embeddings, masked_embs,
-                                                                    masked_project_matrix, 
+                                                                    masked_project_matrix,
                                                                     project_matrix,
                                                                     alpha=sf["alpha"],
-                                                                    logger=sf["logger"])                        
+                                                                    logger=sf["logger"],
+                                                                    safe_subspace_projection=safe_project_matrix,
+                                                                    soft=sf.get("soft_proj", False),
+                                                                    tau=sf.get("soft_tau", 5.0))
         else:
             negspace_text_embeddings = None
             project_matrix = None

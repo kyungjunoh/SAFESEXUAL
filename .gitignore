@@ -1,0 +1,7 @@
+# 생성 결과물 / 대용량
+SAFREE/results/
+SAFREE/pretrained/
+
+# 파이썬 캐시
+__pycache__/
+*.pyc

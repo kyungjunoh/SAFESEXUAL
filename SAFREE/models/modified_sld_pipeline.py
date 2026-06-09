@@ -36,6 +36,8 @@ class ModifiedSLDPipeline(SLDPipeline):
         ],
         safety_checker: StableDiffusionSafetyChecker,
         feature_extractor: CLIPImageProcessor,
+        image_encoder=None,
+        requires_safety_checker: bool = True,
     ):
         super(ModifiedSLDPipeline, self).__init__(
             vae,
@@ -533,6 +535,7 @@ class ModifiedSLDPipeline(SLDPipeline):
             return (image, has_nsfw_concept)
 
         return SLDPipelineOutput(images=image, nsfw_content_detected=has_nsfw_concept,
+                                 unsafe_images=None,
                                  applied_safety_concept=self._safety_text_concept if enable_safety_guidance else None)
     
 

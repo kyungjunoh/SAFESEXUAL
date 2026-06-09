@@ -39,10 +39,11 @@ do
         --erase-id $ERASE_ID \
         --model_id $MODEL_ID \
         --nudity_thr $thr \
-        --save-dir ./results/gen_SAFREE_SD${SD_MODEL_ID}_${ATTACK_TYPE}_debug_m2o_1001/ \
+        --save-dir ./results/gen_SAFREEsafeproj_SD${SD_MODEL_ID}_${ATTACK_TYPE}_debug_m2o_1001/ \
         --safree \
         -svf \
-        -lra"
+        -lra \
+        --safe_proj"
     
     echo $configs
 

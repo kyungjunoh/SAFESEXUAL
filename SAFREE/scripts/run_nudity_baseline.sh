@@ -8,7 +8,7 @@ elif [ "$SD_MODEL_ID" = "v1-4" ]; then
     MODEL_ID="CompVis/stable-diffusion-v1-4"
 elif [ "$SD_MODEL_ID" = "v2" ]; then
     MODEL_ID="stabilityai/stable-diffusion-2"
-else    
+else
     MODEL_ID="na"
 fi
 
@@ -26,11 +26,14 @@ do
         attack_data="./datasets/nudity.csv"
     elif [ "$ATTACK_TYPE" = "mma-diffusion" ]; then
         attack_data="./datasets/mma-diffusion-nsfw-adv-prompts.csv"
-    else    
+    else
         echo "Error: NotImplementedError - ATTACK_TYPE: ${ATTACK_TYPE} is not yet implemented."
         exit 1
     fi
 
+    # Baseline: vanilla SD with NO SAFREE (no --safree / -svf / -lra) AND no safety
+    # negative_prompt (--no_neg_prompt). Uses the same data, seeds, threshold and
+    # NudeNet evaluation as run_nudity.sh, so this can be compared 1:1 against SAFREE.
     configs="--config $CONFIG_PATH \
         --data ${attack_data} \
         --nudenet-path ./pretrained/nudenet_classifier_model.onnx \
@@ -39,13 +42,11 @@ do
         --erase-id $ERASE_ID \
         --model_id $MODEL_ID \
         --nudity_thr $thr \
-        --save-dir ./results/gen_SAFREE_SD${SD_MODEL_ID}_${ATTACK_TYPE}_debug_m2o_1001/ \
-        --safree \
-        -svf \
-        -lra"
-    
+        --no_neg_prompt \
+        --save-dir ./results/gen_BASELINE_SD${SD_MODEL_ID}_${ATTACK_TYPE}_debug_m2o_1001/"
+
     echo $configs
 
     python generate_safree.py \
-        $configs    
+        $configs
 done

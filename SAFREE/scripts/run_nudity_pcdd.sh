@@ -39,10 +39,13 @@ do
         --erase-id $ERASE_ID \
         --model_id $MODEL_ID \
         --nudity_thr $thr \
-        --save-dir ./results/gen_SAFREE_SD${SD_MODEL_ID}_${ATTACK_TYPE}_debug_m2o_1001/ \
+        --save-dir ./results/gen_SAFREEpcdd_SD${SD_MODEL_ID}_${ATTACK_TYPE}_debug_m2o_1001/ \
         --safree \
         -svf \
-        -lra"
+        -lra \
+        --pc_corpus ./datasets/i2p.csv \
+        --pc_nudity_thr 30 \
+        --pc_rank 10"
     
     echo $configs
 

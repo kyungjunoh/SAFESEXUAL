@@ -8,7 +8,6 @@ import json
 # from einops import rearrange
 
 from PIL import Image
-import albumentations as A
 
 from diffusers.pipelines.stable_diffusion_safe import SafetyConfig
 from diffusers import DPMSolverMultistepScheduler
@@ -238,6 +237,25 @@ def main():
     # Initialize unsafe evaluation model
     eval_func = Eval(args)
 
+    # Optional: build a data-driven toxic subspace P_c once, from an NSFW prompt corpus.
+    pc_matrix = None
+    if args.pc_corpus is not None:
+        corpus = pd.read_csv(args.pc_corpus)
+        if 'nudity_percentage' in corpus.columns and args.pc_nudity_thr > 0:
+            corpus = corpus[corpus['nudity_percentage'] >= args.pc_nudity_thr]
+        corpus_prompts = corpus['prompt'].dropna().astype(str).tolist()
+        embs = []
+        with torch.no_grad():
+            for i in range(0, len(corpus_prompts), 64):
+                e = pipe._new_encode_negative_prompt_space(corpus_prompts[i:i+64], 77, 1)
+                embs.append(e.float())
+        embs = torch.cat(embs, 0)  # [N, dim]
+        # PCA (uncentered) -> top-k principal directions span P_c; orthonormal basis B
+        _, _, Vh = torch.linalg.svd(embs, full_matrices=False)
+        B = Vh[:args.pc_rank].T  # [dim, k]
+        pc_matrix = (B @ B.T).to(args.device)
+        logger.log(f"data-driven P_c: {len(corpus_prompts)} prompts (nudity_thr={args.pc_nudity_thr}), rank={args.pc_rank}")
+
     safe_cnt, unsafe_cnt = 0, 0
     category_dict = {}
     detect_dict_append = {}
@@ -253,10 +271,21 @@ def main():
         negative_prompt_space = args.category.split("-")[-1]
         negative_prompt_space = ["Van Gogh"] if negative_prompt_space == "VanGogh" else negative_prompt_space
         negative_prompt_space = ["Kelly McKernan"] if negative_prompt_space == "KellyMcKernan" else negative_prompt_space
-        
+
+    # Safe anchor prompts: span the explicit "safe" subspace that trigger tokens are
+    # projected ONTO when --safe_proj is enabled (counterpart to negative_prompt_space).
+    safe_prompt_space = [
+        "Fully clothed person", "Wearing clothes", "Modest attire", "Decent",
+        "Wholesome", "Safe for work", "Family friendly", "Non-sexual",
+        "Respectful", "Professional", "Everyday scene", "Appropriate",
+    ]
+
 
     negative_prompt = ", ".join(negative_prompt_space)
-    
+    if args.no_neg_prompt:
+        negative_prompt = ""
+        logger.log("no_neg_prompt: safety negative_prompt disabled (vanilla SD baseline)")
+
     vstart, vend = args.valid_case_numbers.split(',')
     dataset = dataset[int(vstart):]
     dataset = dataset[:int(vend)]
@@ -328,11 +357,20 @@ def main():
                                 "svf": args.self_validation_filter,
                                 "lra": args.latent_re_attention,
                                 "up_t": args.up_t,
-                                "category": args.category
-                                },                
-                **(safe_config or {})        
+                                "category": args.category,
+                                "safe_proj": args.safe_proj,
+                                "safe_prompt_space": safe_prompt_space,
+                                "soft_proj": args.soft_proj,
+                                "soft_tau": args.soft_tau,
+                                "pc_matrix": pc_matrix,
+                                },
+                **(safe_config or {})
             )
-        
+
+        # SLD pipeline returns a *Output object; SAFREE pipeline returns a list of images.
+        if hasattr(imgs, "images"):
+            imgs = imgs.images
+
         detect_dict = {}
         if 'artists-' in args.category:
             _save_path = os.path.join(all_imgdir, f"{case_num}.png")
@@ -407,6 +445,7 @@ if __name__ == "__main__":
     parser.add_argument("--nudity_thr", default=0.6, type=float)
     parser.add_argument("--valid_case_numbers", default="0,100000", type=str)
     parser.add_argument("--erase-id", type=str, default="std")
+    parser.add_argument("--safe_level", type=str, default="MAX", choices=["MAX", "STRONG", "MEDIUM", "WEAK"])
 
     # Safe + Free ? --> SAFREE!
     parser.add_argument("--safree", action="store_true")
@@ -416,7 +455,25 @@ if __name__ == "__main__":
     parser.add_argument("--re_attn_t", default="-1,1001", type=str)
     parser.add_argument("--freeu_hyp", default="1.0-1.0-0.9-0.2", type=str)
     parser.add_argument("--up_t", default=10, type=int)
-    
+    # Baseline: empty the hard-coded safety negative_prompt so generation is truly
+    # vanilla SD (no concept suppression at all). Use together with dropping
+    # --safree/-svf/-lra to produce the "before method" images.
+    parser.add_argument("--no_neg_prompt", action="store_true")
+    # Project trigger tokens ONTO an explicit safe subspace (safe_prompt_space) instead
+    # of removing the toxic component (default SAFREE). Only active together with --safree.
+    parser.add_argument("--safe_proj", action="store_true")
+    # Soft continuous projection: blend every token toward the projected embedding by a
+    # per-token weight (sigmoid of trigger ratio), instead of hard 0/1 trigger gating.
+    # Fixes prompts where no token is flagged. soft_tau controls sharpness.
+    parser.add_argument("--soft_proj", action="store_true")
+    parser.add_argument("--soft_tau", default=5.0, type=float)
+    # Data-driven toxic subspace P_c: build it from an NSFW prompt corpus (PCA top-k)
+    # instead of the hand-written negative_prompt_space words. pc_corpus is a csv with a
+    # 'prompt' column; rows are kept when nudity_percentage >= pc_nudity_thr (if present).
+    parser.add_argument("--pc_corpus", type=str, default=None, help="csv of NSFW prompts to define P_c")
+    parser.add_argument("--pc_rank", type=int, default=10, help="top-k PCA dims spanning P_c")
+    parser.add_argument("--pc_nudity_thr", type=float, default=0.0, help="min nudity_percentage to keep a corpus prompt")
+
     args = parser.parse_args()
     args.__dict__.update(read_json(args.config))
 
