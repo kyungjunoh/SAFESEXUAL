@@ -8,8 +8,8 @@
 
 ## 🧑‍🤝‍🧑 About Us
 
-저희 팀은 성적으로 유해한 콘텐츠를 생성하는 확산 모델의 위험성을 줄이기 위한 연구를 수행합니다.
-Machine Unlearning 기법을 활용해 모델의 특정 개념 생성 능력을 제거하는 방법을 탐구합니다.
+저희는 성적(sexual)으로 유해한 콘텐츠를 생성하는 확산 모델의 위험성을 줄이기 위한 연구를 수행합니다.
+Machine Unlearning 기법을 활용해 모델의 특정 개념 생성 능력을 제거하는 방법을 탐구하고자 합니다.
 
 | 이름 | 역할 |
 | --- | --- |
@@ -26,7 +26,7 @@ Machine Unlearning 기법을 활용해 모델의 특정 개념 생성 능력을 
 본 프로젝트는 **Machine Unlearning** 기법을 적용해 모델 재학습 없이(training-free) 또는
 최소한의 학습으로 해당 개념을 잠재 공간(latent space)에서 제거하는 방법을 연구합니다.
 
-### 구현 기능
+### 구현 중인 기능
 
 - [ ] SAFREE Baseline 재현
 - [ ] UnSafeBench 평가 지표 재현
@@ -39,6 +39,23 @@ Machine Unlearning 기법을 활용해 모델의 특정 개념 생성 능력을 
 - training-free 기법에서 PCA 원리를 이해하고 적용하는 과정
 - latent space가 실제로 어떤 의미를 갖는지 실험을 통해 파악한 것
 
+## 깃헙 관련 
+
+### 구현 기능
+- 커밋 최소 3회 이상 
+- 브랜치 1개 생성
+- 소개(About) 작성
+- 프로젝트(Project) 내용 추가
+- 연락(Contact) 작성
+- 내비게이션(상단 메뉴) 생성
+- 사이트 소개 작성
+- 배포 링크 생성
+
+### 어려웠던 점 / 배운 점
+- 체계적인 깃헙 사용 및 활용 방법
+- 개인 단위의 수정이 아닌 팀 단위의 수정이 올바르게 이루어지는 방법
+- 다양한 방식의 깃헙 접속, 수정, 커밋 방법
+
 ## 📫 Contact
 
 - **Email:** rudwns55@g.skku.edu
@@ -47,6 +64,9 @@ Machine Unlearning 기법을 활용해 모델의 특정 개념 생성 능력을 
 - **Email:** jeongmin.c5@g.skku.edu
 - **GitHub:** [github.com/paparu7](https://github.com/paparu7)
 
+- **Email:** arthur737503@gmail.com
+- **GitHub:** [github.com/floatingarthur](https://github.com/floatingarthur)
+  
 - **Repository:** [github.com/kyungjunoh/SAFESEXUAL](https://github.com/kyungjunoh/SAFESEXUAL)
 
 ---
