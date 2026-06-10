@@ -43,6 +43,10 @@ Machine Unlearning 기법을 활용해 모델의 특정 개념 생성 능력을 
 
 - **Email:** rudwns55@g.skku.edu
 - **GitHub:** [github.com/kyungjunoh](https://github.com/kyungjunoh)
+
+- **Email:** jeongmin.c5@g.skku.edu
+- **GitHub:** [github.com/paparu7](https://github.com/paparu7)
+
 - **Repository:** [github.com/kyungjunoh/SAFESEXUAL](https://github.com/kyungjunoh/SAFESEXUAL)
 
 ---
