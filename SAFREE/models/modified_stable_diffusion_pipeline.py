@@ -508,6 +508,25 @@ class ModifiedStableDiffusionPipeline(StableDiffusionPipeline):
             beta_adjusted = f_beta(beta, upperbound_timestep=sf['up_t'], concept_type=sf['category'])
             sf["logger"].log(f"beta : {beta}, adjusted_beta: {beta_adjusted}")
             
+        # Nudity cross-attention suppression: down-weight attention to nudity tokens at
+        # every cross-attn layer/step (conditional branches only). Different lever than
+        # the text-embedding projection above; requires P_c (project_matrix) from --safree.
+        if sf.get("xattn_suppress") and project_matrix is not None:
+            from models.nudity_attn import register_nudity_attn
+            cond = text_embeddings.chunk(2)[1].squeeze(0)            # [tokens, dim]
+            proj = (project_matrix.to(cond.dtype) @ cond.T).T        # nudity-subspace component
+            s = proj.norm(dim=-1) / (cond.norm(dim=-1) + 1e-8)       # raw nudity score per token
+            # Suppress only tokens whose nudity score is ABOVE the prompt average, scaled by
+            # how far above. Benign prompts (uniform scores) get little suppression -> quality
+            # preserved; nudity prompts have clear outlier tokens that get hit. Scale-invariant.
+            excess = (s - s.mean()).clamp(min=0.0)                   # 0 for below-average tokens
+            excess = excess / (excess.max() + 1e-8)                  # [0,1], 1 = most nudity
+            lam = sf.get("xattn_lambda", 0.9)                        # in [0,1]
+            xattn_w = (1.0 - lam * excess).clamp(min=0.0)            # below-avg tokens stay at 1.0
+            register_nudity_attn(self.unet, xattn_w, suppress_from_branch=1)
+            sf["logger"].log(f"xattn_suppress: lambda={lam}, mean w={xattn_w.mean().item():.3f}, "
+                             f"min={xattn_w.min().item():.3f}, #tokens w<0.5={(xattn_w<0.5).sum().item()}")
+
         # 4. Prepare timesteps
         self.scheduler.set_timesteps(num_inference_steps, device=device)
         timesteps = self.scheduler.timesteps
@@ -578,6 +597,11 @@ class ModifiedStableDiffusionPipeline(StableDiffusionPipeline):
                     progress_bar.update()
                     if callback is not None and i % callback_steps == 0:
                         callback(i, t, latents)
+
+        # restore default attention processors (suppression weights are per-prompt)
+        if sf.get("xattn_suppress") and project_matrix is not None:
+            from models.nudity_attn import clear_nudity_attn
+            clear_nudity_attn(self.unet)
 
         # latents: [#, 4, 64, 64]
         if return_latents:

@@ -237,6 +237,13 @@ def main():
     # Initialize unsafe evaluation model
     eval_func = Eval(args)
 
+    # Independent gate detector for image-feedback regeneration (separate from eval).
+    gate_func = None
+    if args.latent_feedback and args.lf_gate == 'clip':
+        from models.clip_nsfw_gate import ClipNSFWGate
+        gate_func = ClipNSFWGate(device=args.device, thr=args.lf_gate_thr)
+        logger.log(f"latent_feedback gate: CLIP zero-shot NSFW (thr={args.lf_gate_thr}), eval stays NudeNet")
+
     # Optional: build a data-driven toxic subspace P_c once, from an NSFW prompt corpus.
     pc_matrix = None
     if args.pc_corpus is not None:
@@ -340,32 +347,38 @@ def main():
                                 },    
             ).images
         else:
-            imgs = pipe(
-                target_prompt,
-                num_images_per_prompt=args.num_samples,
-                guidance_scale=guidance,
-                num_inference_steps=args.num_inference_steps,
-                negative_prompt=negative_prompt,
-                negative_prompt_space=negative_prompt_space,
-                height=args.image_length,
-                width=args.image_length,
-                generator=gen.manual_seed(seed),
-                safree_dict={"re_attn_t": [int(tr) for tr in args.re_attn_t.split(",")],
-                                "alpha": args.sf_alpha,
-                                "logger": logger,
-                                "safree": args.safree,
-                                "svf": args.self_validation_filter,
-                                "lra": args.latent_re_attention,
-                                "up_t": args.up_t,
-                                "category": args.category,
-                                "safe_proj": args.safe_proj,
-                                "safe_prompt_space": safe_prompt_space,
-                                "soft_proj": args.soft_proj,
-                                "soft_tau": args.soft_tau,
-                                "pc_matrix": pc_matrix,
-                                },
-                **(safe_config or {})
-            )
+            def _run_pipe(xattn_on, xattn_lam):
+                out = pipe(
+                    target_prompt,
+                    num_images_per_prompt=args.num_samples,
+                    guidance_scale=guidance,
+                    num_inference_steps=args.num_inference_steps,
+                    negative_prompt=negative_prompt,
+                    negative_prompt_space=negative_prompt_space,
+                    height=args.image_length,
+                    width=args.image_length,
+                    generator=gen.manual_seed(seed),
+                    safree_dict={"re_attn_t": [int(tr) for tr in args.re_attn_t.split(",")],
+                                    "alpha": args.sf_alpha,
+                                    "logger": logger,
+                                    "safree": args.safree,
+                                    "svf": args.self_validation_filter,
+                                    "lra": args.latent_re_attention,
+                                    "up_t": args.up_t,
+                                    "category": args.category,
+                                    "safe_proj": args.safe_proj,
+                                    "safe_prompt_space": safe_prompt_space,
+                                    "soft_proj": args.soft_proj,
+                                    "soft_tau": args.soft_tau,
+                                    "pc_matrix": pc_matrix,
+                                    "xattn_suppress": xattn_on,
+                                    "xattn_lambda": xattn_lam,
+                                    },
+                    **(safe_config or {})
+                )
+                return out.images if hasattr(out, "images") else out
+            # Pass 1: base SAFREE (no extra cross-attn suppression).
+            imgs = _run_pipe(args.xattn_suppress, args.xattn_lambda)
 
         # SLD pipeline returns a *Output object; SAFREE pipeline returns a list of images.
         if hasattr(imgs, "images"):
@@ -376,7 +389,20 @@ def main():
             _save_path = os.path.join(all_imgdir, f"{case_num}.png")
             imgs[0].save(_save_path)
         else:
-            is_unsafe, pred = eval_func(imgs, threshold=args.nudity_thr)               
+            # Image-feedback gating (latent_feedback): regenerate pass-1 with strong cross-
+            # attn suppression only when an INDEPENDENT gate detector flags nudity. The gate
+            # is CLIP zero-shot (lf_gate=clip) -- different model than the NudeNet evaluator
+            # below -- so there is no gate==evaluator circularity. Benign prompts pass the
+            # gate untouched -> full quality. 'std' erase-id only (SAFREE pipeline path).
+            if args.latent_feedback and 'xl' not in args.model_id and args.erase_id == 'std':
+                if args.lf_gate == 'clip':
+                    gate_flag, gate_score = gate_func.is_nude(imgs)
+                else:  # 'nudenet' -> same detector as eval (circular; for ablation only)
+                    gate_flag, gate_score = eval_func(imgs, threshold=args.nudity_thr)
+                if gate_flag:
+                    logger.log(f"latent_feedback: gate({args.lf_gate}) flagged ({gate_score:.3f}) -> regenerate xattn lambda={args.lf_lambda}")
+                    imgs = _run_pipe(True, args.lf_lambda)
+            is_unsafe, pred = eval_func(imgs, threshold=args.nudity_thr)
             if not isinstance(_categories, list):
                 _categories = [_categories]
             
@@ -473,6 +499,16 @@ if __name__ == "__main__":
     parser.add_argument("--pc_corpus", type=str, default=None, help="csv of NSFW prompts to define P_c")
     parser.add_argument("--pc_rank", type=int, default=10, help="top-k PCA dims spanning P_c")
     parser.add_argument("--pc_nudity_thr", type=float, default=0.0, help="min nudity_percentage to keep a corpus prompt")
+    # Nudity cross-attention suppression (requires --safree for P_c). Down-weights
+    # cross-attn to nudity tokens; xattn_lambda is the suppression strength.
+    parser.add_argument("--xattn_suppress", action="store_true")
+    parser.add_argument("--xattn_lambda", type=float, default=0.9, help="suppression strength in [0,1]")
+    # Image-feedback gating: regenerate only nudity-detected outputs with strong suppression.
+    parser.add_argument("--latent_feedback", action="store_true")
+    parser.add_argument("--lf_lambda", type=float, default=1.0, help="pass-2 cross-attn suppression strength")
+    parser.add_argument("--lf_gate", type=str, default="clip", choices=["clip", "nudenet"],
+                        help="gate detector: clip (independent of eval) or nudenet (circular ablation)")
+    parser.add_argument("--lf_gate_thr", type=float, default=0.5, help="CLIP gate nudity probability threshold")
 
     args = parser.parse_args()
     args.__dict__.update(read_json(args.config))

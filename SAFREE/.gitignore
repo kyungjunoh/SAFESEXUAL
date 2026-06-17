@@ -1,0 +1,12 @@
+# generated images / large artifacts (kept locally, not pushed)
+results/
+pretrained/
+
+# logs
+*.log
+train_logs/
+
+# python caches
+__pycache__/
+*.pyc
+*.pyo
