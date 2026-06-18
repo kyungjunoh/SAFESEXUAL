@@ -211,6 +211,15 @@
             border-radius: 4px;
             padding: 2px 5px;
         }
+        .command-block {
+            background: #0d1117;
+            color: #c9d1d9;
+            border-radius: 8px;
+            padding: 18px;
+            overflow-x: auto;
+            line-height: 1.7;
+        }
+        .command-block code { font-family: Consolas, 'Liberation Mono', monospace; }
 
         .member-card {
             background: white;
@@ -261,7 +270,7 @@
                 box-sizing: border-box;
             }
             nav a { margin: 0; font-size: 0.92rem; }
-            section { padding: 104px 18px 44px; min-height: auto; }
+            section { padding: 128px 18px 44px; min-height: auto; }
             h2 { font-size: 1.35rem; }
             .member-card { padding: 14px 16px; }
             .highlight-grid { grid-template-columns: 1fr; }
@@ -281,6 +290,7 @@
         <a href="#project">Project</a>
         <a href="#method">Method</a>
         <a href="#results">Results</a>
+        <a href="#usage">Usage</a>
         <a href="#contact">Contact</a>
     </nav>
 
@@ -458,6 +468,21 @@
                 <li>안전 게이트와 최종 평가 검출기를 분리해 평가 편향을 줄였습니다.</li>
             </ul>
         </div>
+    </section>
+
+    <section id="usage">
+        <h2>⚙️ Usage</h2>
+        <p>
+            실험 코드는 <code>SAFREE/</code> 디렉터리 안에 정리되어 있으며,
+            IFGR 재현은 제공된 실행 스크립트를 기준으로 진행합니다.
+        </p>
+        <pre class="command-block"><code>cd SAFREE
+conda activate SAFREE
+bash scripts/run_ifgr.sh</code></pre>
+        <p class="result-note">
+            NudeNet 가중치와 Stable Diffusion v1-4 체크포인트는 별도로 준비해야 하며,
+            생성 결과와 pretrained 가중치는 저장소 용량을 고려해 Git에서 제외했습니다.
+        </p>
     </section>
 
     <section id="contact">
