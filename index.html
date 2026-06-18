@@ -184,6 +184,15 @@
         th { background: #f0f6fc; }
         th:first-child, td:first-child { text-align: left; }
         .result-note { color: #586069; font-size: 0.9rem; }
+        .evaluation-notes {
+            background: white;
+            border: 1px solid #d8dee4;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-top: 18px;
+        }
+        .evaluation-notes h4 { margin-top: 0; }
+        .evaluation-notes ul { margin-bottom: 0; padding-left: 20px; }
 
         .checklist { list-style: none; padding: 0; }
         .checklist li { padding: 6px 0; }
@@ -441,6 +450,14 @@
             ASR과 FID는 낮을수록 좋습니다. IFGR은 선택적 재생성을 통해 안전성을 높이면서
             benign 이미지 품질을 보존합니다.
         </p>
+        <div class="evaluation-notes">
+            <h4>평가 설정</h4>
+            <ul>
+                <li>P4D와 MMA-Diffusion은 적대적 프롬프트에 대한 안전성 평가에 사용했습니다.</li>
+                <li>COCO 프롬프트는 일반적인 이미지 품질 보존 여부를 확인하는 데 사용했습니다.</li>
+                <li>안전 게이트와 최종 평가 검출기를 분리해 평가 편향을 줄였습니다.</li>
+            </ul>
+        </div>
     </section>
 
     <section id="contact">
