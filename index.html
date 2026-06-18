@@ -73,6 +73,16 @@
             margin: 4px 4px 4px 0;
         }
 
+        .project-summary {
+            background: white;
+            border-left: 4px solid #58a6ff;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin: 20px 0 28px;
+            box-shadow: 0 4px 14px rgba(27, 31, 36, 0.06);
+        }
+        .project-summary p { margin: 0; }
+
         .checklist { list-style: none; padding: 0; }
         .checklist li { padding: 6px 0; }
         .checklist li::before { content: "☐ "; color: #aaa; }
@@ -148,20 +158,26 @@
         <br>
         <span class="badge">PyTorch</span>
         <span class="badge">Diffusion Models</span>
-        <span class="badge">Machine Unlearning</span>
-        <span class="badge">PCA</span>
-        <span class="badge">Latent Space</span>
+        <span class="badge">Training-free Safety</span>
+        <span class="badge">Cross-Attention</span>
+        <span class="badge">CLIP</span>
     </section>
 
     <section id="project">
         <h2>🚀 Project</h2>
-        <h3>SAFESEXUAL — Unlearning for Sexual Content in Diffusion Models</h3>
+        <h3>SAFESEXUAL — Training-free Safety for Diffusion Models</h3>
+        <div class="project-summary">
+            <p>
+                텍스트-이미지 확산 모델이 생성한 결과를 이미지 기반 안전 게이트로 확인하고,
+                유해하다고 판단된 경우에만 같은 seed에서 재생성하는
+                <strong>IFGR(Image-Feedback Gated Regeneration)</strong> 방법을 제안합니다.
+            </p>
+        </div>
         <p>
-            텍스트-이미지 생성 모델(Diffusion Model)은 강력한 생성 능력을 갖추고 있지만,
-            그만큼 성적으로 유해한 콘텐츠를 생성할 위험도 존재합니다.
-            본 프로젝트는 <strong>Machine Unlearning</strong> 기법을 적용해
-            모델 재학습 없이(training-free) 또는 최소한의 학습으로
-            해당 개념을 잠재 공간(latent space)에서 제거하는 방법을 연구합니다.
+            프롬프트만 검사하는 방식은 우회 표현이나 적대적 프롬프트에 취약할 수 있습니다.
+            IFGR은 실제 생성 이미지를 NudeNet과 CLIP zero-shot 분류기로 평가한 뒤,
+            필요한 경우에만 cross-attention을 강화 억제합니다.
+            안전한 이미지는 그대로 반환하므로 불필요한 품질 저하와 재생성 비용을 줄입니다.
         </p>
 
         <h4>구현 중인 기능</h4>
