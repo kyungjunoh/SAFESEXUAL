@@ -33,6 +33,13 @@ pip install -r requirements.txt
 ```bash
 bash scripts/run_nudity.sh
 ```
+
+### IFGR generation using SD-v1.4 with image-feedback gating
+
+```bash
+bash scripts/run_ifgr.sh
+```
+
 ### Safe generation using SD-XL by removing nudity concepts
 
 ```bash
