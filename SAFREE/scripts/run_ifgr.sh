@@ -1,8 +1,8 @@
 #!/bin/bash
-# IFGR — Image-Feedback Gated Regeneration (main method).
-# Pass 1: SAFREE generation (word-based P_c, no corpus -> leak-free).
-# Gate:   independent CLIP zero-shot NSFW detector (separate from the NudeNet evaluator).
-# Pass 2: regenerate flagged images (same seed) with strong cross-attention suppression.
+# IFGR: Image-Feedback Gated Regeneration (main method).
+# Pass 1 runs SAFREE generation with the word-based P_c space.
+# Gate uses an independent CLIP zero-shot NSFW detector.
+# Pass 2 regenerates flagged images with stronger cross-attention suppression.
 #
 # Usage:  bash scripts/run_ifgr.sh
 # Eval on P4D (datasets/nudity.csv); ASR is measured by NudeNet.
