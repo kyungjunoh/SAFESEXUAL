@@ -67,6 +67,45 @@
         h2 { border-bottom: 2px solid #58a6ff; padding-bottom: 8px; }
         img { display: block; max-width: 100%; height: auto; }
 
+        .hero {
+            max-width: 960px;
+            padding-top: 120px;
+            text-align: center;
+        }
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            letter-spacing: -0.04em;
+        }
+        .hero .subtitle {
+            max-width: 720px;
+            margin: 0 auto 24px;
+            color: #586069;
+            font-size: 1.08rem;
+        }
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .button-link {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 10px 18px;
+            text-decoration: none;
+            font-weight: 700;
+            background: #0969da;
+            color: white;
+        }
+        .button-link.secondary {
+            background: white;
+            color: #0969da;
+            border: 1px solid #0969da;
+        }
+        .button-link:hover { text-decoration: none; filter: brightness(0.96); }
+
         .badge {
             display: inline-block;
             background: #0d1117;
@@ -209,6 +248,7 @@
     <a class="skip-link" href="#main-content">본문으로 바로가기</a>
 
     <nav aria-label="주요 메뉴">
+        <a href="#home">Home</a>
         <a href="#about">About</a>
         <a href="#project">Project</a>
         <a href="#method">Method</a>
@@ -217,6 +257,18 @@
     </nav>
 
     <main id="main-content">
+    <section class="hero" id="home">
+        <h1>SAFESEXUAL</h1>
+        <p class="subtitle">
+            이미지 피드백 기반 선택적 재생성으로 텍스트-이미지 확산 모델의 안전성을 높이고,
+            안전한 생성 결과의 품질은 그대로 보존하는 프로젝트입니다.
+        </p>
+        <div class="hero-actions">
+            <a class="button-link" href="#method">방법 보기</a>
+            <a class="button-link secondary" href="#results">결과 확인</a>
+        </div>
+    </section>
+
     <section id="about">
         <h2>🧑‍🤝‍🧑 About Us</h2>
         <p>저희는 성적(sexual)으로 유해한 콘텐츠를 생성하는 확산 모델의 위험성을 줄이기 위한 연구를 수행합니다.<br>
