@@ -83,6 +83,31 @@
         }
         .project-summary p { margin: 0; }
 
+        .method-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 24px 0;
+        }
+        .method-step {
+            background: white;
+            border: 1px solid #d8dee4;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .method-step strong {
+            display: block;
+            color: #0969da;
+            margin-bottom: 6px;
+        }
+        figure { margin: 28px 0 0; }
+        figcaption {
+            color: #586069;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
         .checklist { list-style: none; padding: 0; }
         .checklist li { padding: 6px 0; }
         .checklist li::before { content: "☐ "; color: #aaa; }
@@ -122,6 +147,7 @@
             section { padding: 84px 18px 44px; min-height: auto; }
             h2 { font-size: 1.35rem; }
             .member-card { padding: 14px 16px; }
+            .method-steps { grid-template-columns: 1fr; }
             footer { padding: 24px 16px; }
         }
     </style>
@@ -133,6 +159,7 @@
     <nav aria-label="주요 메뉴">
         <a href="#about">About</a>
         <a href="#project">Project</a>
+        <a href="#method">Method</a>
         <a href="#contact">Contact</a>
     </nav>
 
@@ -195,6 +222,35 @@
             <li>Latent space가 실제로 어떤 의미를 갖는지 실험을 통해 파악한 것</li>
         </ul>     
         
+    </section>
+
+    <section id="method">
+        <h2>🔬 Method</h2>
+        <h3>IFGR — Image-Feedback Gated Regeneration</h3>
+        <p>
+            IFGR은 생성 결과를 먼저 평가한 후 필요한 경우에만 개입하는 2-pass 방식입니다.
+            평가용 안전 게이트와 최종 성능 측정기를 분리해 circular evaluation을 방지합니다.
+        </p>
+
+        <div class="method-steps">
+            <div class="method-step">
+                <strong>Pass 1 · Generate</strong>
+                SAFREE를 사용해 입력 프롬프트와 seed로 첫 이미지를 생성합니다.
+            </div>
+            <div class="method-step">
+                <strong>Gate · Evaluate</strong>
+                NudeNet과 CLIP zero-shot 분류기로 생성 이미지의 안전성을 확인합니다.
+            </div>
+            <div class="method-step">
+                <strong>Pass 2 · Regenerate</strong>
+                unsafe 이미지에만 cross-attention 억제를 강화해 같은 seed에서 재생성합니다.
+            </div>
+        </div>
+
+        <figure>
+            <img src="figure1.png" alt="이미지 생성, 안전성 평가, 조건부 재생성으로 이어지는 IFGR 파이프라인">
+            <figcaption>IFGR 전체 구조: 안전한 이미지는 유지하고 unsafe 결과에만 선택적으로 개입합니다.</figcaption>
+        </figure>
     </section>
 
     <section id="contact">
