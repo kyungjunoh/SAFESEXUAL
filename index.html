@@ -8,6 +8,18 @@
         html { scroll-behavior: smooth; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; line-height: 1.6; background: #f6f8fa; color: #24292e; }
 
+        .skip-link {
+            position: absolute;
+            top: -48px;
+            left: 16px;
+            z-index: 2000;
+            background: white;
+            color: #24292e;
+            padding: 10px 14px;
+            border-radius: 0 0 6px 6px;
+        }
+        .skip-link:focus { top: 0; }
+
         nav {
             position: fixed;
             top: 0;
@@ -24,6 +36,10 @@
             font-weight: bold;
         }
         nav a:hover { color: #58a6ff; }
+        nav a:focus-visible, a:focus-visible {
+            outline: 3px solid #f0c36e;
+            outline-offset: 3px;
+        }
 
         section {
             padding: 100px 20px 60px;
@@ -76,12 +92,15 @@
 </head>
 <body>
 
-    <nav>
+    <a class="skip-link" href="#main-content">본문으로 바로가기</a>
+
+    <nav aria-label="주요 메뉴">
         <a href="#about">About</a>
         <a href="#project">Project</a>
         <a href="#contact">Contact</a>
     </nav>
 
+    <main id="main-content">
     <section id="about">
         <h2>🧑‍🤝‍🧑 About Us</h2>
         <p>저희는 성적(sexual)으로 유해한 콘텐츠를 생성하는 확산 모델의 위험성을 줄이기 위한 연구를 수행합니다.<br>
@@ -141,17 +160,18 @@
         <p>문의나 피드백은 아래 링크를 통해 남겨주세요.</p>
         <ul>
             <li><strong>Email:</strong> <a href="mailto:rudwns55@g.skku.edu">rudwns55@g.skku.edu</a></li>
-            <li><strong>GitHub:</strong> <a href="https://github.com/kyungjunoh" target="_blank">github.com/kyungjunoh</a></li>
+            <li><strong>GitHub:</strong> <a href="https://github.com/kyungjunoh" target="_blank" rel="noopener noreferrer">github.com/kyungjunoh</a></li>
             <br></br>
             <li><strong>Email:</strong> <a href="mailto:jeongmin.c@g.skku.edu">jeongmin.c@g.skku.edu</a></li>
-            <li><strong>GitHub:</strong> <a href="https://github.com/paparu7" target="_blank">github.com/paparu7</a></li>
+            <li><strong>GitHub:</strong> <a href="https://github.com/paparu7" target="_blank" rel="noopener noreferrer">github.com/paparu7</a></li>
             <br></br>
             <li><strong>Email:</strong> <a href="mailto:arthur737503@gmail.com">arthur737503@gmail.com</a></li>
-            <li><strong>GitHub:</strong> <a href="https://github.com/floatingarthur" target="_blank">github.com/floatingarthur</a></li>
+            <li><strong>GitHub:</strong> <a href="https://github.com/floatingarthur" target="_blank" rel="noopener noreferrer">github.com/floatingarthur</a></li>
             <br></br>
-            <li><strong>Repository:</strong> <a href="https://github.com/kyungjunoh/SAFESEXUAL" target="_blank">github.com/kyungjunoh/SAFESEXUAL</a></li>
+            <li><strong>Repository:</strong> <a href="https://github.com/kyungjunoh/SAFESEXUAL" target="_blank" rel="noopener noreferrer">github.com/kyungjunoh/SAFESEXUAL</a></li>
         </ul>
     </section>
+    </main>
 
     <footer>
         © 2026 SAFESEXUAL Team · Powered by GitHub Pages
