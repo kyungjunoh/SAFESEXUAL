@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAFESEXUAL - 기말 프로젝트</title>
+    <meta name="description" content="IFGR을 활용한 training-free diffusion model safety 연구 프로젝트">
+    <meta name="theme-color" content="#24292e">
+    <meta property="og:title" content="SAFESEXUAL — Training-free Diffusion Safety">
+    <meta property="og:description" content="이미지 피드백 기반 선택적 재생성으로 안전성과 품질을 함께 보존합니다.">
+    <meta property="og:type" content="website">
+    <title>SAFESEXUAL — Training-free Diffusion Safety</title>
     <style>
         html { scroll-behavior: smooth; }
         body {
@@ -151,6 +156,23 @@
         .member-card strong { font-size: 1.05em; }
         .member-card .role { color: #586069; font-size: 0.92em; }
 
+        .contact-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            list-style: none;
+            padding: 0;
+        }
+        .contact-list li {
+            background: white;
+            border: 1px solid #d8dee4;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .contact-list strong { display: block; margin-bottom: 8px; }
+        .contact-list a { display: block; font-size: 0.9rem; }
+        .repository-link { margin-top: 22px; }
+
         a { color: #0366d6; }
         a:hover { text-decoration: underline; }
 
@@ -177,6 +199,7 @@
             h2 { font-size: 1.35rem; }
             .member-card { padding: 14px 16px; }
             .method-steps { grid-template-columns: 1fr; }
+            .contact-list { grid-template-columns: 1fr; }
             footer { padding: 24px 16px; }
         }
     </style>
@@ -337,18 +360,29 @@
     <section id="contact">
         <h2>📫 Contact</h2>
         <p>문의나 피드백은 아래 링크를 통해 남겨주세요.</p>
-        <ul>
-            <li><strong>Email:</strong> <a href="mailto:rudwns55@g.skku.edu">rudwns55@g.skku.edu</a></li>
-            <li><strong>GitHub:</strong> <a href="https://github.com/kyungjunoh" target="_blank" rel="noopener noreferrer">github.com/kyungjunoh</a></li>
-            <br></br>
-            <li><strong>Email:</strong> <a href="mailto:jeongmin.c@g.skku.edu">jeongmin.c@g.skku.edu</a></li>
-            <li><strong>GitHub:</strong> <a href="https://github.com/paparu7" target="_blank" rel="noopener noreferrer">github.com/paparu7</a></li>
-            <br></br>
-            <li><strong>Email:</strong> <a href="mailto:arthur737503@gmail.com">arthur737503@gmail.com</a></li>
-            <li><strong>GitHub:</strong> <a href="https://github.com/floatingarthur" target="_blank" rel="noopener noreferrer">github.com/floatingarthur</a></li>
-            <br></br>
-            <li><strong>Repository:</strong> <a href="https://github.com/kyungjunoh/SAFESEXUAL" target="_blank" rel="noopener noreferrer">github.com/kyungjunoh/SAFESEXUAL</a></li>
+        <ul class="contact-list">
+            <li>
+                <strong>오경준</strong>
+                <a href="mailto:rudwns55@g.skku.edu">rudwns55@g.skku.edu</a>
+                <a href="https://github.com/kyungjunoh" target="_blank" rel="noopener noreferrer">@kyungjunoh</a>
+            </li>
+            <li>
+                <strong>최정민</strong>
+                <a href="mailto:jeongmin.c@g.skku.edu">jeongmin.c@g.skku.edu</a>
+                <a href="https://github.com/paparu7" target="_blank" rel="noopener noreferrer">@paparu7</a>
+            </li>
+            <li>
+                <strong>김윤수</strong>
+                <a href="mailto:arthur737503@gmail.com">arthur737503@gmail.com</a>
+                <a href="https://github.com/floatingarthur" target="_blank" rel="noopener noreferrer">@floatingarthur</a>
+            </li>
         </ul>
+        <p class="repository-link">
+            <strong>Repository:</strong>
+            <a href="https://github.com/kyungjunoh/SAFESEXUAL" target="_blank" rel="noopener noreferrer">
+                github.com/kyungjunoh/SAFESEXUAL
+            </a>
+        </p>
     </section>
     </main>
 
